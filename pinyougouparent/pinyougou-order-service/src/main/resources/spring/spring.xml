@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!-- 事务传播特性配置 -->
+    <tx:advice id="txAdvice" transaction-manager="txManager">
+        <!-- the transactional semantics... -->
+        <tx:attributes>
+            <tx:method name="add*" propagation="REQUIRED" isolation="DEFAULT"
+                       rollback-for="java.lang.Exception" />
+            <tx:method name="save*" propagation="REQUIRED" isolation="DEFAULT"
+                       rollback-for="java.lang.Exception" />
+            <tx:method name="insert*" propagation="REQUIRED" isolation="DEFAULT"
+                       rollback-for="java.lang.Exception" />
+            <tx:method name="update*" propagation="REQUIRED" isolation="DEFAULT"
+                       rollback-for="java.lang.Exception" />
+            <tx:method name="modify*" propagation="REQUIRED" isolation="DEFAULT"
+                       rollback-for="java.lang.Exception" />
+            <tx:method name="delete*" propagation="REQUIRED" isolation="DEFAULT"
+                       rollback-for="java.lang.Exception" />
+
+            <!-- 查询方法 -->
+            <tx:method name="query*" read-only="true" />
+            <tx:method name="select*" read-only="true" />
+            <tx:method name="find*" read-only="true" />
+        </tx:attributes>
+    </tx:advice>
+
+    <!-- 配置事务管理器 -->
+    <bean id="txManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <!-- 开启AOP注解 -->
+    <aop:aspectj-autoproxy />
+
+    <!-- 声明式事务AOP配置 -->
+    <aop:config>
+        <!--配置AOP切点-->
+        <aop:pointcut expression="execution(* com.pinyougou.order.service.impl.*.*(..))" id="tranpointcut" />
+        <!-- 事务控制 -->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="tranpointcut" />
+    </aop:config>
+
+    <!--snowflakeID计算器-->
+    <bean class="com.pinyougou.util.IdWorker" id="idWorker">
+        <!-- 进程ID -->
+        <constructor-arg index="0" value="0"></constructor-arg>
+        <!-- 数据中心ID -->
+        <constructor-arg index="1" value="0"></constructor-arg>
+    </bean>
+
+    <!--引入外部配置-->
+    <import resource="spring-dubbo.xml" />
+    <import resource="classpath*:/spring/applicationContext-dao.xml" />
+    <import resource="classpath*:/redis/spring-redis.xml" />
+</beans>

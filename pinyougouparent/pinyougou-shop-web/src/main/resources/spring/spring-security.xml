@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bean:beans xmlns="http://www.springframework.org/schema/security"
+			xmlns:bean="http://www.springframework.org/schema/beans"
+			xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+	<!-- 设置登录页面和静态资源无需权限 -->
+	<http security="none" pattern="/*.html"/>
+	<http security="none" pattern="/seller/add.do"/>
+	<http security="none" pattern="/css/**"/>
+	<http security="none" pattern="/img/**"/>
+	<http security="none" pattern="/js/**"/>
+	<http security="none" pattern="/plugins/**"/>
+
+	<http>
+		<!-- 拦击规则设置 -->
+		<intercept-url pattern="/**" access="hasRole('ROLE_USER')"/>
+		<!-- 表单登录 -->
+		<form-login login-page="/shoplogin.html" authentication-failure-url="/shoplogin_error.html" default-target-url="/admin/index.html"
+					always-use-default-target="true"/>
+		<!-- 跨域访问 -->
+		<csrf disabled="true" />
+		<!--框架页面配置 -->
+		<headers>
+			<frame-options policy="SAMEORIGIN" />
+		</headers>
+		<!-- 退出登录地址 -->
+		<logout/>
+	</http>
+
+	<!-- 自定义认证类 -->
+	<bean:bean id="userDetailService" class="com.pinyougou.service.UserDetailServiceImpl">
+		<bean:property name="sellerService" ref="sellerService"></bean:property>
+	</bean:bean>
+	<!-- 认证管理器 -->
+	<authentication-manager>
+		<authentication-provider user-service-ref="userDetailService" >
+			<password-encoder ref="passwordEncoder"/>
+		</authentication-provider>
+	</authentication-manager>
+
+	<!-- 引用dubbo服务 -->
+	<dubbo:application name="pinyougou-shop-web" />
+	<dubbo:registry address="zookeeper://192.168.25.128:2181" />
+	<dubbo:reference id="sellerService" interface="com.pinyougou.sellersgoods.service.SellerService"></dubbo:reference>
+
+	<!-- 密码管理器 -->
+	<bean:bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+</bean:beans>
