@@ -1,0 +1,14 @@
+debug: true
+spring:
+  activemq:
+    broker-url: tcp://192.168.25.128:61616
+
+alidayu:
+  #已修改
+  accessKeyId: LTAI5t#
+  accessKeySecret: xka1W6qxQLZV#
+  signName: 阿里云短信测试
+  templateCode: SMS_154
+
+server:
+  port: 9106
